@@ -32,6 +32,17 @@ emerge --ask app-forensics/precizer
 precizer --version
 ```
 
+## Install with Tests
+
+To build the package and run the tests from the ebuild, enable the `test` USE flag and the `test` Portage feature for this invocation
+
+```sh
+USE="test" FEATURES="test" emerge --ask app-forensics/precizer
+precizer --version
+```
+
+`USE=test` allows the test phase for `app-forensics/precizer`, and `FEATURES=test` tells Portage to actually run tests during the build
+
 ## Update
 
 To update only this repository, use
