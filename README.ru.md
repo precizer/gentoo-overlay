@@ -48,6 +48,14 @@ emaint sync --repo precizer
 emerge --ask --update app-forensics/precizer
 ```
 
+Для обновления с выполнением тестовой фазы используются USE-флаг `test` и Portage feature `test`
+
+```sh
+USE="test" FEATURES="test" emerge --ask --update app-forensics/precizer
+```
+
+`USE=test` разрешает тестовую фазу ebuild, а `FEATURES=test` включает её выполнение во время сборки
+
 `emerge --sync` также синхронизирует этот репозиторий, поскольку для него включён параметр `auto-sync = yes`
 
 ## Удаление Precizer

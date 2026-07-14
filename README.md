@@ -48,6 +48,14 @@ The package is then updated in the usual way
 emerge --ask --update app-forensics/precizer
 ```
 
+The `test` USE flag and the `test` Portage feature are used for an update that includes the test phase
+
+```sh
+USE="test" FEATURES="test" emerge --ask --update app-forensics/precizer
+```
+
+`USE=test` permits the ebuild test phase, while `FEATURES=test` enables its execution during the build
+
 `emerge --sync` also synchronizes this repository because `auto-sync = yes` is enabled for it
 
 ## Precizer Removal
