@@ -16,17 +16,6 @@ A new version is prepared through the following stages
 
 Changes do not need to be published to the remote repository before verification. The automation uses the current local files from `app-forensics/precizer/`
 
-## Manual Installation with Tests
-
-The `test` USE flag and the `test` Portage feature are used for a one-time ebuild check in an already enabled overlay
-
-```sh
-USE="test" FEATURES="test" emerge --ask app-forensics/precizer
-precizer --version
-```
-
-`USE=test` permits the test phase for `app-forensics/precizer`, while `FEATURES=test` tells Portage that the tests must run during the build
-
 ## Automated Package Verification in Docker
 
 The workflow requires GNU Make, the `docker` command, access to a running Docker daemon, and network connectivity. It uses the `gentoo/stage3:latest` image and a temporary container named `precizer-gentoo-overlay` by default
@@ -53,6 +42,17 @@ Verification consists of the following stages
 Distfile cleanup happens only inside the temporary container and makes changed source archives detectable before a release is published. Within the working copy, the automation changes only `app-forensics/precizer/Manifest`
 
 Any required-stage failure causes `make` to return a nonzero status. The `Manifest` is copied to the host before the build checks, so successfully recalculated hashes remain available even if a later build, test, or removal step fails
+
+## Manual Installation with Tests
+
+The `test` USE flag and the `test` Portage feature are used for a one-time ebuild check in an already enabled overlay
+
+```sh
+USE="test" FEATURES="test" emerge --ask app-forensics/precizer
+precizer --version
+```
+
+`USE=test` permits the test phase for `app-forensics/precizer`, while `FEATURES=test` tells Portage that the tests must run during the build
 
 ## Verification Container Cleanup
 
