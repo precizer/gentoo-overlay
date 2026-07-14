@@ -8,9 +8,9 @@ Precizer is a lightweight, high-performance CLI tool written in C for file integ
 
 The tool is useful for validating synchronization results, backups, and Disaster Recovery scenarios. Precizer does not modify, delete, or move the files being checked. All working data is written only to the Precizer database
 
-## Enable the Repository
+## Repository Setup
 
-Run the commands as `root`
+Root privileges are required for the following commands
 
 ```sh
 emerge --ask --noreplace dev-vcs/git
@@ -25,57 +25,51 @@ EOF
 emaint sync --repo precizer
 ```
 
-## Install
+## Precizer Installation
+
+Precizer installation and command availability verification are performed as follows
 
 ```sh
 emerge --ask app-forensics/precizer
 precizer --version
 ```
 
-## Install with Tests
+## Precizer Updates
 
-To build the package and run the tests from the ebuild, enable the `test` USE flag and the `test` Portage feature for this invocation
-
-```sh
-USE="test" FEATURES="test" emerge --ask app-forensics/precizer
-precizer --version
-```
-
-`USE=test` allows the test phase for `app-forensics/precizer`, and `FEATURES=test` tells Portage to actually run tests during the build
-
-## Update
-
-To update only this repository, use
+The overlay is synchronized first
 
 ```sh
 emaint sync --repo precizer
 ```
 
-After syncing, update the package in the usual way
+The package is then updated in the usual way
 
 ```sh
 emerge --ask --update app-forensics/precizer
 ```
 
-`emerge --sync` will also synchronize this repository because `auto-sync = yes` is enabled for it
+`emerge --sync` also synchronizes this repository because `auto-sync = yes` is enabled for it
 
-## Disable
+## Precizer Removal
+
+Precizer is removed through Portage with the following command
 
 ```sh
 emerge --ask --depclean app-forensics/precizer
+```
+
+## Overlay Removal
+
+After Precizer has been removed, the configuration and local overlay copy are removed as follows
+
+```sh
 rm -f /etc/portage/repos.conf/precizer.conf
 rm -rf /var/db/repos/precizer
 ```
 
-## Repository Structure
+## Contributing to the Overlay
 
-```text
-app-forensics/precizer/
-metadata/
-profiles/
-```
-
-`app-forensics/precizer/` contains the ebuild and package metadata. `metadata/layout.conf` tells Portage that this overlay inherits the main Gentoo repository. `profiles/repo_name` sets the repository name to `precizer`
+New Precizer versions, `Manifest` updates, and ebuild verification are documented in the [contributor guide](CONTRIBUTING.md)
 
 ## Links
 

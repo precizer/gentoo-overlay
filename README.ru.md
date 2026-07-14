@@ -10,7 +10,7 @@ Precizer — лёгкая и быстрая консольная програм�
 
 ## Подключение
 
-Выполняйте команды от имени `root`
+Для выполнения команд требуются права `root`
 
 ```sh
 emerge --ask --noreplace dev-vcs/git
@@ -25,57 +25,51 @@ EOF
 emaint sync --repo precizer
 ```
 
-## Установка
+## Установка Precizer
+
+Установка Precizer и проверка доступности команды выполняются следующим образом
 
 ```sh
 emerge --ask app-forensics/precizer
 precizer --version
 ```
 
-## Установка с запуском тестов
+## Обновление Precizer
 
-Чтобы собрать пакет и выполнить тесты из ebuild, включите USE-флаг `test` и Portage feature `test` для этого запуска
-
-```sh
-USE="test" FEATURES="test" emerge --ask app-forensics/precizer
-precizer --version
-```
-
-`USE=test` разрешает тестовую фазу для пакета `app-forensics/precizer`, а `FEATURES=test` сообщает Portage, что тесты действительно нужно выполнить во время сборки
-
-## Обновление
-
-Для обновления только этого репозитория используйте
+Сначала синхронизируется оверлей
 
 ```sh
 emaint sync --repo precizer
 ```
 
-После синхронизации обновите пакет обычным способом
+Затем пакет обновляется обычным способом
 
 ```sh
 emerge --ask --update app-forensics/precizer
 ```
 
-`emerge --sync` также будет синхронизировать этот репозиторий, потому что для него включён `auto-sync = yes`
+`emerge --sync` также синхронизирует этот репозиторий, поскольку для него включён параметр `auto-sync = yes`
 
-## Отключение
+## Удаление Precizer
+
+Удаление Precizer через Portage выполняется следующей командой
 
 ```sh
 emerge --ask --depclean app-forensics/precizer
+```
+
+## Отключение оверлея
+
+После удаления Precizer конфигурация и локальная копия оверлея удаляются следующим образом
+
+```sh
 rm -f /etc/portage/repos.conf/precizer.conf
 rm -rf /var/db/repos/precizer
 ```
 
-## Структура репозитория
+## Внесение изменений в оверлей
 
-```text
-app-forensics/precizer/
-metadata/
-profiles/
-```
-
-`app-forensics/precizer/` содержит ebuild и metadata пакета. `metadata/layout.conf` сообщает Portage, что этот overlay наследует основной репозиторий Gentoo. `profiles/repo_name` задаёт имя репозитория `precizer`
+Добавление новых версий Precizer, обновление `Manifest` и проверка ebuild описаны в [руководстве для разработчиков](CONTRIBUTING.ru.md)
 
 ## Ссылки
 
