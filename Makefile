@@ -17,7 +17,7 @@ export DOCKER GENTOO_IMAGE GENTOO_CONTAINER DOCKER_LABEL_KEY DOCKER_LABEL_VALUE
 # Run the complete package verification workflow when no target is specified
 all: docker-gentoo
 
-# Create a fresh Gentoo container and verify the complete package lifecycle
+# Verify local and Gentoo-registry package lifecycles in a fresh container
 docker-gentoo:
 	@scripts/docker-gentoo.sh run
 

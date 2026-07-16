@@ -110,9 +110,9 @@ remove_stale_container() {
 }
 
 ##
-# @brief Run the complete host-side Docker workflow for the Precizer ebuild
+# @brief Run local-working-copy and published-overlay verification in a Gentoo container
 #
-# @return Success only after repository preparation and both package lifecycle checks pass
+# @return Success only after both repository paths and all package lifecycle checks pass
 run_verification() {
 	# Always clean up the current container and preserve conventional signal exit codes
 	trap on_exit EXIT
@@ -141,7 +141,8 @@ run_verification() {
 	run_docker cp "${host_package_dir}/." "${container_id}:${container_staged_package_dir}/"
 	run_docker cp "${container_script_source}" "${container_id}:${container_script}"
 
-	# Let the guest script recreate the overlay and regenerate its Manifest in Gentoo
+	# Let the guest script test manual repository setup and regenerate the local Manifest first
+	printf 'Verifying the local working copy through manual repository setup\n'
 	run_docker exec "${container_id}" /bin/bash "${container_script}" \
 		prepare "${container_staged_package_dir}" "${container_repository}"
 
@@ -152,11 +153,25 @@ run_verification() {
 	mv -f -- "${manifest_tmp}" "${host_manifest}"
 	manifest_tmp=
 
-	# Run both install, smoke-test, and removal cycles inside the prepared container
+	# Run both lifecycle checks against the current local working copy
 	run_docker exec "${container_id}" /bin/bash "${container_script}" verify "${package_atom}"
 
-	# Print a concise confirmation only after every required check has succeeded
-	printf 'Gentoo package lifecycle verification completed\n'
+	# Remove every manual repository artifact before testing Gentoo registry discovery
+	run_docker exec "${container_id}" /bin/bash "${container_script}" \
+		remove-manual "${container_repository}"
+
+	# Enable and synchronize the published overlay without copying any local package files into it
+	printf 'Verifying the published overlay through the Gentoo repository registry\n'
+	run_docker exec "${container_id}" /bin/bash "${container_script}" prepare-official
+
+	# Repeat both lifecycle checks against the untouched package published through the Gentoo registry
+	run_docker exec "${container_id}" /bin/bash "${container_script}" verify "${package_atom}"
+
+	# Exercise official repository removal and require both configuration and contents to disappear
+	run_docker exec "${container_id}" /bin/bash "${container_script}" remove-official
+
+	# Print a concise confirmation only after both repository paths pass every required check
+	printf 'Local and Gentoo-registry package lifecycle verification completed\n'
 }
 
 ##

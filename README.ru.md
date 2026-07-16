@@ -12,6 +12,22 @@ Precizer — лёгкая и быстрая консольная програм�
 
 Для выполнения команд требуются права `root`
 
+### Подключение через каталог Gentoo
+
+Оверлей `precizer` зарегистрирован в поддерживаемом Gentoo каталоге сторонних ebuild-репозиториев. Это основной способ подключения
+
+```sh
+emerge --ask app-eselect/eselect-repository
+eselect repository enable precizer
+emaint sync -r precizer
+```
+
+Регистрация в каталоге позволяет `eselect repository` получить готовую конфигурацию оверлея без ручного создания локального репозитария
+
+### Альтернативное ручное подключение
+
+В качестве альтернативы оверлей может быть подключён путём ручного создания и дальнейшего обслуживания локального репозитория
+
 ```sh
 emerge --ask --noreplace dev-vcs/git
 install -d /etc/portage/repos.conf
@@ -27,7 +43,7 @@ emaint sync --repo precizer
 
 ## Установка Precizer
 
-Установка Precizer и проверка доступности команды выполняются следующим образом
+Для установки Precizer и проверки доступности команды в системе используются следующие команды
 
 ```sh
 emerge --ask app-forensics/precizer
@@ -48,15 +64,17 @@ emaint sync --repo precizer
 emerge --ask --update app-forensics/precizer
 ```
 
-Для обновления с выполнением тестовой фазы используются USE-флаг `test` и Portage feature `test`
+`emerge --sync` также синхронизирует этот репозиторий, поскольку для него включён параметр `auto-sync = yes`
+
+### Дополнительный запуск тестов
+
+При желании во время обновления можно дополнительно запустить тесты, входящие в состав Precizer. Обычное обновление этого не требует
 
 ```sh
 USE="test" FEATURES="test" emerge --ask --update app-forensics/precizer
 ```
 
-`USE=test` разрешает тестовую фазу ebuild, а `FEATURES=test` включает её выполнение во время сборки
-
-`emerge --sync` также синхронизирует этот репозиторий, поскольку для него включён параметр `auto-sync = yes`
+В этой команде `USE=test` разрешает тестовую фазу ebuild, а `FEATURES=test` указывает Portage выполнить её во время сборки
 
 ## Удаление Precizer
 
@@ -66,16 +84,32 @@ USE="test" FEATURES="test" emerge --ask --update app-forensics/precizer
 emerge --ask --depclean app-forensics/precizer
 ```
 
-## Отключение оверлея
+## Отключение и удаление оверлея
 
-После удаления Precizer конфигурация и локальная копия оверлея удаляются следующим образом
+### Оверлей, подключённый через каталог Gentoo
+
+Оверлей можно отключить, сохранив загруженные файлы
+
+```sh
+eselect repository disable precizer
+```
+
+Если загруженная копия больше не нужна, вместо `disable` используется полное удаление
+
+```sh
+eselect repository remove precizer
+```
+
+### Оверлей, созданный вручную
+
+После удаления Precizer можно удалить созданные вручную конфигурацию и локальную копию оверлея
 
 ```sh
 rm -f /etc/portage/repos.conf/precizer.conf
 rm -rf /var/db/repos/precizer
 ```
 
-## Внесение изменений в оверлей
+## Внесение изменений в оверлей проекта Precizer
 
 Добавление новых версий Precizer, обновление `Manifest` и проверка ebuild описаны в [руководстве для разработчиков](CONTRIBUTING.ru.md)
 
@@ -84,3 +118,5 @@ rm -rf /var/db/repos/precizer
 - Основной проект: https://github.com/precizer/precizer
 - Сайт проекта: https://precizer.github.io/
 - Ошибки и предложения: https://github.com/precizer/precizer/issues
+- Каталог Gentoo ebuild-репозиториев: https://overlays.gentoo.org/
+- Документация `eselect repository`: https://wiki.gentoo.org/wiki/Eselect-repository
