@@ -11,44 +11,37 @@ A new version is prepared through the following stages
 1. An ebuild named `precizer-X.Y.Z.ebuild` is created in `app-forensics/precizer/`, where `X.Y.Z` matches the version of the Precizer source archive
 2. The build targets, test targets, dependencies, and installed file path are checked against the corresponding main-project release
 3. The `Manifest` is not edited manually because the automated build regenerates it for every ebuild in the directory
-4. After the ebuild is prepared, `make` is run from the repository root
+4. After the ebuild is prepared, `make` is run from the repository root. The command updates the `Manifest` and starts verification of builds, installation, and removal for the local and published package versions in Docker. Details are described in [Verifying Package Builds, Installation, and Removal](#verifying-package-builds-installation-and-removal)
 5. After successful verification, the change set will contain the new or modified ebuild and the updated `app-forensics/precizer/Manifest`
 
-Changes do not need to be published to the remote repository before verification. The automation uses the current local files from `app-forensics/precizer/`
+Changes do not need to be published to the remote repository before verification. The automation uses the current local files copied into `app-forensics/precizer/`
 
-## Automated Package Verification in Docker
+## Verifying Package Builds, Installation, and Removal
 
-The workflow requires GNU Make, Docker, and network connectivity. By default, it uses the `gentoo/stage3:latest` image and creates a temporary container named `precizer-gentoo-overlay`
-
-The following command is run from the repository root
+Verification requires GNU Make, Docker, and network access. It is started from the repository root with the following command
 
 ```sh
 make
 ```
 
-The default `all` target invokes the `docker-gentoo` target. Local working-copy preparation, `Manifest` regeneration, two local package verification cycles, and two published package verification cycles through the Gentoo registry are performed inside Docker
+The command creates a temporary Gentoo container based on the `gentoo/stage3:latest` image. The latest local package version from `app-forensics/precizer/` is checked first, followed by the latest published version from the overlay
 
-Verification consists of the following stages
+Each version goes through two verification cycles: without tests and with tests enabled through `USE=test` and `FEATURES=test`. In each cycle, the package is built from source, installed, and checked by running `precizer --version`. The package is then removed through Portage, and the command is checked to ensure that it is no longer available through `PATH`
 
-1. A leftover project container is safely removed, the Gentoo image is pulled or updated, and a new container is created with a label marking it as part of the current workflow
-2. The main Gentoo repository is synchronized in the container, and Git is installed together with `app-eselect/eselect-repository`
-3. The overlay is enabled through the alternative manual `repos.conf` method and synchronized with the upstream Git repository
-4. The package directory is replaced with the local `app-forensics/precizer/` contents, so the first workflow verifies the current working copy
-5. The container's entire distfile cache is cleared, the source archives for every local ebuild are downloaded again from the URLs declared by that ebuild, and Portage is then asked to regenerate the shared `Manifest`
-6. The non-empty `Manifest` is copied from the container to a temporary file beside the local `Manifest` and then atomically replaces `app-forensics/precizer/Manifest`
-7. The latest local package version is built from source without tests or binary packages, installed, smoke-tested with `precizer --version` without an explicit path, removed through Portage, and checked to ensure that the command is no longer available through `PATH`
-8. The same local version is rebuilt from source with `USE=test` and `FEATURES=test`, passes the ebuild test phase, is installed, passes the smoke test again, is removed through Portage, and is checked again to ensure that the command is no longer available through `PATH`
-9. The manual configuration and synchronized checkout are completely removed, after which Portage is checked for the absence of the `precizer` repository
-10. The overlay is enabled again from the Gentoo-maintained registry with `eselect repository enable precizer` and synchronized with `emaint sync -r precizer`
-11. The published checkout is checked for its path, repository name, origin, non-empty `Manifest`, and ebuild files. No local files are copied into this checkout, and its `Manifest` is not regenerated
-12. The distfile cache is cleared again, and the latest published version is then built, installed, smoke-tested, removed, and checked for absence from `PATH`
-13. The published version repeats the same lifecycle with `USE=test` and `FEATURES=test`
-14. `eselect repository remove precizer` removes the registry-enabled configuration and checkout, after which their absence is verified
-15. After success, failure, or a handled signal, a best-effort attempt is made to remove the temporary container
+Verification includes the following stages
 
-Distfile cleanup happens only inside the temporary container. In the local workflow, it makes changed source archives detectable before a release is published; in the registry workflow, it independently downloads the archives verified by the published `Manifest`. Within the working copy, the automation changes only `app-forensics/precizer/Manifest`
+1. Gentoo is prepared inside the container, and the overlay is enabled manually through `repos.conf`
+2. Local files from `app-forensics/precizer/` are copied into the overlay. Source archives for all local ebuilds are downloaded again, the `Manifest` is regenerated, and the local `app-forensics/precizer/Manifest` file is updated
+3. The latest local package version goes through both verification cycles
+4. The manual overlay configuration is removed. The overlay is enabled again from the Gentoo repository registry through `eselect repository enable precizer` and synchronized
+5. The published overlay configuration and contents are checked. Source archives are downloaded again and verified against the published `Manifest`, after which the latest published version goes through both verification cycles
+6. The overlay is removed through `eselect repository remove precizer`, and the absence of its configuration and files is verified
 
-Any required-stage failure causes `make` to return a nonzero status. The local `Manifest` is copied to the host before all build checks, so successfully recalculated hashes remain available even if the local or registry workflow fails later
+The source archive cache is cleared only inside the temporary container. Only `app-forensics/precizer/Manifest` is changed in the working copy. Verification of the published version uses files from the remote repository, and its `Manifest` is not regenerated
+
+A failure at any required stage causes `make` to return a nonzero exit code. The local `Manifest` is updated before the package is built and is retained even if later checks fail
+
+Removal of the temporary container is attempted automatically when verification ends, including after an error or a handled signal. If the container could not be removed, `make clean` is used to retry cleanup
 
 ## Manual Installation with Tests
 
